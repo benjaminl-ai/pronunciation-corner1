@@ -124,8 +124,8 @@
         recognition.start();
     }
 
-    recognition.onresult = (event) => {
-        const result = event.results[0][0].transcript.toLowerCase();
+recognition.onresult = (event) => {
+        const result = event.results[0][0].transcript.toLowerCase().trim();
         const target = vocabList[currentIndex].word.toLowerCase();
         const btn = document.getElementById('record-btn');
         const feedback = document.getElementById('feedback');
@@ -134,9 +134,27 @@
         btn.classList.remove('recording');
 
         if (result.includes(target)) {
-            feedback.innerHTML = '<span style="color:var(--success)">Perfect! 🎉</span>';
+            feedback.innerHTML = '<span style="color:var(--success)">Perfect! 🎉 讀得好準！</span>';
         } else {
-            feedback.innerHTML = `<span style="color:var(--danger)">You said: "${result}"</span>`;
+            // 改善建議邏輯
+            let suggestion = "";
+            
+            if (target.endsWith('en') && !result.endsWith('en')) {
+                suggestion = "💡 試下清楚啲讀埋個 'n' 尾音（例如: tight-EN）。";
+            } else if (target.endsWith('s') && !result.endsWith('s')) {
+                suggestion = "💡 記得讀埋個 's' 尾音。";
+            } else if (target.endsWith('ed') && !result.endsWith('ed') && !result.endsWith('t')) {
+                suggestion = "💡 留意字尾嘅 'd' 或 't' 音（例如: connect-ED）。";
+            } else if (result.length < target.length / 2) {
+                suggestion = "💡 讀得太短喇，試下逐個音節慢慢讀。";
+            } else {
+                suggestion = "💡 試下聽多兩次 🔊 模仿個聲調再試下！";
+            }
+
+            feedback.innerHTML = `
+                <div style="color:var(--danger); font-size: 0.9rem;">你讀咗: "${result}"</div>
+                <div style="color:var(--primary); font-size: 0.85rem; margin-top:5px; background:#f0f0ff; padding:5px; border-radius:8px;">${suggestion}</div>
+            `;
         }
     };
 
@@ -154,3 +172,4 @@
 
 </body>
 </html>
+
