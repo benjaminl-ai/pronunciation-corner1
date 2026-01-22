@@ -3,162 +3,153 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Vocational English - Pronunciation Master</title>
+    <title>Pronunciation Master - Focus Mode</title>
     <style>
         :root {
-            --primary: #6c5ce7; --secondary: #a29bfe; --success: #00b894;
-            --danger: #d63031; --bg: #f9f9fb; --text: #2d3436;
+            --primary: #6c5ce7; --success: #00b894; --danger: #d63031; --bg: #f0f2f5;
         }
-        body { font-family: 'Segoe UI', Arial, sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 20px; }
-        .container { max-width: 500px; margin: auto; }
-        h1 { text-align: center; color: var(--primary); font-size: 1.5rem; }
+        body { font-family: 'Segoe UI', Arial, sans-serif; background: var(--bg); margin: 0; display: flex; align-items: center; justify-content: center; height: 100vh; overflow: hidden; }
+        .container { width: 90%; max-width: 400px; text-align: center; }
         
-        .vocab-card {
-            background: white; border-radius: 20px; padding: 20px; margin-bottom: 20px;
-            box-shadow: 0 10px 20px rgba(0,0,0,0.05); border: 2px solid transparent;
+        .progress-bar { width: 100%; height: 8px; background: #ddd; border-radius: 4px; margin-bottom: 20px; }
+        #progress-fill { width: 6.6%; height: 100%; background: var(--primary); border-radius: 4px; transition: 0.3s; }
+
+        .card {
+            background: white; border-radius: 24px; padding: 30px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+            min-height: 350px; display: flex; flex-direction: column; justify-content: center;
+            animation: slideIn 0.4s ease-out;
         }
         
-        .word-header { display: flex; justify-content: space-between; align-items: center; }
-        .english-word { font-size: 1.4rem; font-weight: bold; color: var(--primary); }
-        .btn-audio { background: var(--secondary); color: white; border: none; border-radius: 50%; width: 40px; height: 40px; cursor: pointer; font-size: 1.2rem; }
+        .word-count { font-size: 0.9rem; color: #888; margin-bottom: 10px; }
+        .english-word { font-size: 2.2rem; font-weight: bold; color: var(--primary); margin: 10px 0; }
+        .translation { font-size: 1.1rem; color: #555; margin-bottom: 20px; }
         
-        .translation { font-size: 1rem; color: #636e72; margin: 10px 0; display: block; font-weight: bold; }
-        .example-box { background: #f1f2f6; padding: 12px; border-radius: 10px; font-size: 0.9rem; font-style: italic; border-left: 4px solid var(--secondary); margin: 15px 0; line-height: 1.4; }
-        
-        .btn-record { 
-            background: var(--primary); color: white; border: none; padding: 12px 25px; 
-            border-radius: 30px; font-size: 1rem; cursor: pointer; width: 100%; transition: 0.3s;
-        }
+        .example-box { background: #f8f9fa; padding: 15px; border-radius: 12px; font-size: 0.95rem; font-style: italic; color: #666; margin-bottom: 25px; line-height: 1.4; border-left: 5px solid var(--primary); text-align: left; }
+
+        .control-btns { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+        .btn { border: none; border-radius: 15px; padding: 15px; font-size: 1.1rem; cursor: pointer; transition: 0.2s; font-weight: bold; }
+        .btn-listen { background: #eef2ff; color: var(--primary); }
+        .btn-record { background: var(--primary); color: white; }
         .btn-record.recording { background: var(--danger); animation: pulse 1.5s infinite; }
         
-        @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.7; } 100% { opacity: 1; } }
-        
-        .feedback { margin-top: 15px; font-weight: bold; min-height: 40px; text-align: center; }
-        .correct { color: var(--success); }
-        .wrong { color: var(--danger); }
-        .info { color: #666; font-size: 0.85rem; }
+        .nav-btns { margin-top: 25px; display: flex; justify-content: space-between; }
+        .btn-nav { background: none; border: 1px solid #ccc; padding: 8px 20px; border-radius: 10px; color: #666; cursor: pointer; }
+        .btn-nav:disabled { opacity: 0.3; }
 
-        #popup {
-            display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
-            width: 75%; background: white; padding: 30px; border-radius: 20px; text-align: center;
-            box-shadow: 0 0 50px rgba(0,0,0,0.2); z-index: 100;
-        }
-        .overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 99; }
+        .feedback { margin-top: 15px; font-weight: bold; height: 25px; }
+        @keyframes slideIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(0.95); } 100% { transform: scale(1); } }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <h1>🎤 Pronunciation Corner</h1>
-    <p style="text-align:center; color: #666;">點擊 🔊 聽發音，點擊 🎤 練習錄音</p>
+    <div class="progress-bar"><div id="progress-fill"></div></div>
+    
+    <div class="card" id="vocab-card">
+        <div class="word-count">Step <span id="current-step">1</span> of 15</div>
+        <div class="english-word" id="word-text">close</div>
+        <div class="translation" id="word-trans">關閉</div>
+        
+        <div class="example-box" id="word-example">"Please close the safety cover before starting."</div>
 
-    <div id="app"></div>
-</div>
+        <div class="control-btns">
+            <button class="btn btn-listen" onclick="playAudio()">🔊 Listen</button>
+            <button class="btn btn-record" id="record-btn" onclick="startRecord()">🎤 Record</button>
+        </div>
+        <div id="feedback" class="feedback"></div>
+    </div>
 
-<div id="overlay" class="overlay"></div>
-<div id="popup">
-    <div id="popup-icon" style="font-size: 3rem;"></div>
-    <h3 id="popup-msg"></h3>
-    <button onclick="closePopup()" style="background: var(--primary); color: white; border: none; padding: 10px 20px; border-radius: 10px; cursor:pointer;">繼續練習</button>
+    <div class="nav-btns">
+        <button class="btn-nav" id="prev-btn" onclick="changeWord(-1)" disabled>Previous</button>
+        <button class="btn-nav" id="next-btn" onclick="changeWord(1)">Next</button>
+    </div>
 </div>
 
 <script>
-    // 更新後的 15 個核心單字及職業英語例句
     const vocabList = [
-        { word: "close", translation: "關閉", example: "Please close the safety cover before starting the machine." },
-        { word: "connect", translation: "連接", example: "Connect the blue wire to the terminal." },
-        { word: "cut off", translation: "切斷", example: "Cut off the power supply in case of emergency." },
-        { word: "disconnect", translation: "中斷連接", example: "Disconnect the cables before moving the computer." },
-        { word: "insert", translation: "插入", example: "Insert the key into the slot and turn it clockwise." },
-        { word: "loosen", translation: "放鬆 / 鬆開", example: "Loosen the screws slightly to adjust the position." },
-        { word: "open", translation: "開啟", example: "Open the valve to release the pressure." },
-        { word: "plug in", translation: "接通電源 / 插上插頭", example: "Plug in the vacuum cleaner to the wall socket." },
-        { word: "remove", translation: "移除", example: "Remove the old battery and replace it with a new one." },
-        { word: "screw", translation: "擰緊螺絲", example: "Screw the bolts tightly to secure the base." },
-        { word: "straighten", translation: "弄直 / 拉直", example: "Straighten the metal wire before cutting it." },
-        { word: "tighten", translation: "緊固", example: "Tighten the nut with a wrench." },
-        { word: "twist", translation: "扭動 / 轉動", example: "Twist the cap to open the bottle." },
-        { word: "unplug", translation: "拔掉插頭", example: "Unplug the hairdryer after use for safety." },
-        { word: "unscrew", translation: "旋鬆螺絲", example: "Unscrew the back panel to check the components." }
+        { word: "close", trans: "關閉", ex: "Please close the safety cover before starting." },
+        { word: "connect", trans: "連接", ex: "Connect the blue wire to the terminal." },
+        { word: "cut off", trans: "切斷", ex: "Cut off the power supply in case of emergency." },
+        { word: "disconnect", trans: "中斷連接", ex: "Disconnect the cables before moving it." },
+        { word: "insert", trans: "插入", ex: "Insert the key into the slot and turn it." },
+        { word: "loosen", trans: "鬆開", ex: "Loosen the screws slightly to adjust it." },
+        { word: "open", trans: "開啟", ex: "Open the valve to release the pressure." },
+        { word: "plug in", trans: "接通電源", ex: "Plug in the vacuum cleaner to the socket." },
+        { word: "remove", trans: "移除", ex: "Remove the old battery and replace it." },
+        { word: "screw", trans: "擰緊螺絲", ex: "Screw the bolts tightly to secure the base." },
+        { word: "straighten", trans: "弄直", ex: "Straighten the metal wire before cutting." },
+        { word: "tighten", trans: "緊固", ex: "Tighten the nut with a wrench." },
+        { word: "twist", trans: "轉動", ex: "Twist the cap to open the bottle." },
+        { word: "unplug", trans: "拔掉插頭", ex: "Unplug the hairdryer after use." },
+        { word: "unscrew", trans: "旋鬆螺絲", ex: "Unscrew the panel to check inside." }
     ];
 
-    const app = document.getElementById('app');
-
-    vocabList.forEach((item, index) => {
-        const card = document.createElement('div');
-        card.className = 'vocab-card';
-        card.innerHTML = `
-            <div class="word-header">
-                <span class="english-word">${item.word}</span>
-                <button class="btn-audio" onclick="playAudio('${item.word}')">🔊</button>
-            </div>
-            <span class="translation">${item.translation}</span>
-            <div class="example-box">Example: "${item.example}"</div>
-            <div class="record-section">
-                <button class="btn-record" onclick="startRecord('${item.word}', ${index}, this)">🎤 按住錄音</button>
-                <div class="feedback" id="feedback-${index}"></div>
-            </div>
-        `;
-        app.appendChild(card);
-    });
-
-    function playAudio(text) {
-        const msg = new SpeechSynthesisUtterance(text);
-        msg.lang = 'en-US';
-        msg.rate = 0.85;
-        window.speechSynthesis.speak(msg);
-    }
-
+    let currentIndex = 0;
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
     const recognition = new SpeechRecognition();
     recognition.lang = 'en-US';
 
-    let currentBtn = null;
-    let currentFeedback = null;
-    let targetText = "";
-
-    function startRecord(word, index, btn) {
-        targetText = word.toLowerCase();
-        currentBtn = btn;
-        currentFeedback = document.getElementById(`feedback-${index}`);
+    function updateCard() {
+        const item = vocabList[currentIndex];
+        document.getElementById('word-text').innerText = item.word;
+        document.getElementById('word-trans').innerText = item.trans;
+        document.getElementById('word-example').innerText = `"${item.ex}"`;
+        document.getElementById('current-step').innerText = currentIndex + 1;
+        document.getElementById('progress-fill').style.width = ((currentIndex + 1) / 15 * 100) + '%';
+        document.getElementById('feedback').innerText = '';
         
-        btn.innerText = "正在聽... 👂";
+        document.getElementById('prev-btn').disabled = currentIndex === 0;
+        document.getElementById('next-btn').innerText = currentIndex === 14 ? 'Finish' : 'Next';
+        
+        // 每次換詞加個小動畫
+        const card = document.getElementById('vocab-card');
+        card.style.animation = 'none';
+        card.offsetHeight; 
+        card.style.animation = 'slideIn 0.4s ease-out';
+    }
+
+    function playAudio() {
+        const msg = new SpeechSynthesisUtterance(vocabList[currentIndex].word);
+        msg.lang = 'en-US';
+        msg.rate = 0.8;
+        window.speechSynthesis.speak(msg);
+    }
+
+    function startRecord() {
+        const btn = document.getElementById('record-btn');
+        btn.innerText = "Listening...";
         btn.classList.add('recording');
         recognition.start();
     }
 
     recognition.onresult = (event) => {
         const result = event.results[0][0].transcript.toLowerCase();
-        currentBtn.innerText = "🎤 按住再試一次";
-        currentBtn.classList.remove('recording');
+        const target = vocabList[currentIndex].word.toLowerCase();
+        const btn = document.getElementById('record-btn');
+        const feedback = document.getElementById('feedback');
+        
+        btn.innerText = "🎤 Record";
+        btn.classList.remove('recording');
 
-        if (result.includes(targetText)) {
-            currentFeedback.innerHTML = `<span class="correct">Excellent! "${result}" 🎉</span>`;
-            showPopup("準確的發音！", "🌟");
+        if (result.includes(target)) {
+            feedback.innerHTML = '<span style="color:var(--success)">Perfect! 🎉</span>';
         } else {
-            currentFeedback.innerHTML = `
-                <span class="wrong">再試試看！</span><br>
-                <span class="info">你讀了: "${result}"</span>
-            `;
+            feedback.innerHTML = `<span style="color:var(--danger)">You said: "${result}"</span>`;
         }
     };
 
-    recognition.onerror = () => {
-        currentBtn.innerText = "🎤 按住錄音";
-        currentBtn.classList.remove('recording');
-    };
-
-    function showPopup(msg, icon) {
-        document.getElementById('popup-msg').innerText = msg;
-        document.getElementById('popup-icon').innerText = icon;
-        document.getElementById('overlay').style.display = 'block';
-        document.getElementById('popup').style.display = 'block';
+    function changeWord(step) {
+        currentIndex += step;
+        if (currentIndex >= vocabList.length) {
+            alert("Congratulations! You finished all words! 🎉");
+            currentIndex = 0;
+        }
+        updateCard();
     }
 
-    function closePopup() {
-        document.getElementById('overlay').style.display = 'none';
-        document.getElementById('popup').style.display = 'none';
-    }
+    updateCard();
 </script>
 
 </body>
